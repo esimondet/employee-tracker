@@ -29,27 +29,49 @@ const promptUser = async function() {
       if (choiceCheck.choiceList === 'View All Departments') {
 
         // Print Departments
-        const [results] = await connection.execute("SELECT Department_name AS 'Department Name' FROM departments ");
+        const [results] = await connection.execute(
+          `SELECT Department_name AS 'Department Name' 
+          FROM departments `);
         const table = cTable.getTable(results);
         console.log(table);
 
         // Return to choice list
         promptUser();
+
       } else if (choiceCheck.choiceList === 'View All Roles') {
 
         // Print Roles
-        const [results] = await connection.execute("SELECT Title, Salary, Department_name AS 'Department Name' FROM Roles INNER JOIN Departments ON department_id=departments.id");
+        const [results] = await connection.execute(
+        `SELECT Title, Salary, Department_name AS 'Department Name' 
+        FROM Roles 
+        INNER JOIN Departments ON Department_id=Departments.Id`);
         const table = cTable.getTable(results);
         console.log(table);
 
         // Return to choice list
         promptUser();
+
       } else if (choiceCheck.choiceList === 'View All Employees') {
 
         // Print Employees
+        const [results] = await connection.execute(
+        `SELECT Employees.Id, 
+                Employees.First_name AS 'First Name', 
+                Employees.Last_name AS 'Last Name', 
+                Roles.Title, 
+                Departments.Department_name AS 'Department Name', 
+                Roles.Salary, 
+                CONCAT(Manager.First_name,' ',Manager.Last_name) AS 'Manager Name'
+        FROM Employees 
+        INNER JOIN Roles ON Roles.Id = Employees.Role_id 
+        INNER JOIN Departments ON Departments.Id = Roles.Department_id
+        INNER JOIN Employees as Manager ON Manager.Id = Employees.Manager_id`);
+        const table = cTable.getTable(results);
+        console.log(table);
 
         // Return to choice list
         promptUser();
+
       } else if (choiceCheck.choiceList === 'Add Department') {
 
         // prompt user for department information
@@ -60,6 +82,7 @@ const promptUser = async function() {
             interns.push(new Intern(responses.internName, responses.internId, responses.internEmail, 'Intern', responses.internSchool));
             // Return to choice list
             promptUser();
+            
           });
       } else if (choiceCheck.choiceList === 'Add Role') {
 
