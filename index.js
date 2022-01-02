@@ -1,14 +1,15 @@
 const inquirer = require('inquirer');
-const db = require('./db/connection.js');
 const cTable = require('console.table');
+const mysql = require('mysql2/promise');
 
-db.connect(err => {
-  if (err) throw err;
-  console.log('Database connected.');
-});
+ /*db.connect(err => {
+   if (err) throw err;
+   console.log('Database connected.');
+ });*/
 
-const promptUser = () => {
-  return inquirer.prompt([
+
+const promptUser = async function() {
+  return await inquirer.prompt([
     {
       type: 'list',
       name: 'choiceList',
@@ -16,20 +17,30 @@ const promptUser = () => {
       choices: ['View All Departments', 'View All Roles', 'View All Employees', 'Add Department', 'Add Role', 'Add Employee', 'Update an Employee Role', 'Exit']
     }
   ])
-    .then(choiceCheck => {
+    .then( async choiceCheck => {
+
+      const connection = await mysql.createConnection({
+        host: 'localhost',
+        user: 'root',
+        password: 'stormlight',
+        database: 'employee_tracker'
+      })
+
       if (choiceCheck.choiceList === 'View All Departments') {
 
         // Print Departments
-        db.query({ sql: 'SELECT * FROM departments', rowsAsArray: true}), function(err, results, fields) {
-          console.log(results);
-          console.log(fields);
-        };
+        const [results] = await connection.execute("SELECT Department_name AS 'Department Name' FROM departments ");
+        const table = cTable.getTable(results);
+        console.log(table);
 
         // Return to choice list
         promptUser();
       } else if (choiceCheck.choiceList === 'View All Roles') {
 
         // Print Roles
+        const [results] = await connection.execute("SELECT Title, Salary, Department_name AS 'Department Name' FROM Roles INNER JOIN Departments ON department_id=departments.id");
+        const table = cTable.getTable(results);
+        console.log(table);
 
         // Return to choice list
         promptUser();
@@ -83,8 +94,10 @@ const promptUser = () => {
           });
       } else {
         //once 'Exit' is chosen from the list prompt, end recursion 
+        console.log('Goodbye!')
         return;
       }
     });
 }
 
+promptUser();
