@@ -65,7 +65,7 @@ const promptUser = async function() {
         FROM Employees 
         INNER JOIN Roles ON Roles.Id = Employees.Role_id 
         INNER JOIN Departments ON Departments.Id = Roles.Department_id
-        INNER JOIN Employees as Manager ON Manager.Id = Employees.Manager_id`);
+        LEFT JOIN Employees as Manager ON Manager.Id = Employees.Manager_id`);
         const table = cTable.getTable(results);
         console.log(table);
 
