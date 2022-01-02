@@ -1,5 +1,5 @@
 const inquirer = require('inquirer');
-const db = require('./db/connection');
+const db = require('./db/connection.js');
 const cTable = require('console.table');
 
 db.connect(err => {
@@ -20,7 +20,10 @@ const promptUser = () => {
       if (choiceCheck.choiceList === 'View All Departments') {
 
         // Print Departments
-        const sql = `SELECT * FROM departments`;
+        db.query({ sql: 'SELECT * FROM departments', rowsAsArray: true}), function(err, results, fields) {
+          console.log(results);
+          console.log(fields);
+        };
 
         // Return to choice list
         promptUser();
