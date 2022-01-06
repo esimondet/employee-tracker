@@ -2,13 +2,162 @@ const inquirer = require('inquirer');
 const cTable = require('console.table');
 const mysql = require('mysql2/promise');
 
- /*db.connect(err => {
-   if (err) throw err;
-   console.log('Database connected.');
- });*/
+/*db.connect(err => {
+  if (err) throw err;
+  console.log('Database connected.');
+});*/
 
+var departmentPrompts = function () {
+  return inquirer.prompt([
+    {
+      type: 'number',
+      name: 'departmentId',
+      message: 'What is the department ID?',
+      validate: inputField => {
+        if (inputField) {
+          return true;
+        } else {
+          console.log('Please enter the department ID!');
+          return false;
+        }
+      }
+    },
+    {
+      type: 'input',
+      name: 'departmentName',
+      message: 'What is the department name (limit 30 characters)?',
+      validate: inputField => {
+        if (inputField) {
+          return true;
+        } else {
+          console.log('Please enter the department name!');
+          return false;
+        }
+      }
+    }
+  ])
+}
 
-const promptUser = async function() {
+var rolePrompts = function () {
+  return inquirer.prompt([
+    {
+      type: 'number',
+      name: 'roleId',
+      message: 'What is the role ID?',
+      validate: inputField => {
+        if (inputField) {
+          return true;
+        } else {
+          console.log('Please enter the role ID!');
+          return false;
+        }
+      }
+    },
+    {
+      type: 'input',
+      name: 'roleTitle',
+      message: 'What is the role title (limit 30 characters)?',
+      validate: inputField => {
+        if (inputField) {
+          return true;
+        } else {
+          console.log('Please enter the role title!');
+          return false;
+        }
+      }
+    },
+    {
+      type: 'number',
+      name: 'roleSalary',
+      message: 'What is the role salary?',
+      validate: inputField => {
+        if (inputField) {
+          return true;
+        } else {
+          console.log('Please enter the role salary!');
+          return false;
+        }
+      }
+    },
+    {
+      type: 'number',
+      name: 'roleDepartment',
+      message: 'What department ID does the role belong to?',
+      validate: inputField => {
+        if (inputField) {
+          return true;
+        } else {
+          console.log('Please enter the role department ID!');
+          return false;
+        }
+      }
+    },
+  ])
+}
+
+var employeePrompts = function () {
+  return inquirer.prompt([
+    {
+      type: 'number',
+      name: 'employeeId',
+      message: 'What is the employee ID?',
+      validate: inputField => {
+        if (inputField) {
+          return true;
+        } else {
+          console.log('Please enter the employee ID!');
+          return false;
+        }
+      }
+    },
+    {
+      type: 'input',
+      name: 'firstName',
+      message: "What is the employee's first name (limit 30 characters)?",
+      validate: inputField => {
+        if (inputField) {
+          return true;
+        } else {
+          console.log("Please enter the employee's first name!");
+          return false;
+        }
+      }
+    },
+    {
+      type: 'input',
+      name: 'lastName',
+      message: "What is the employee's last name (limit 30 characters)?",
+      validate: inputField => {
+        if (inputField) {
+          return true;
+        } else {
+          console.log("Please enter the employee's last name!");
+          return false;
+        }
+      }
+    },
+    {
+      type: 'number',
+      name: 'employeeRole',
+      message: 'What role ID does the employee belong to?',
+      validate: inputField => {
+        if (inputField) {
+          return true;
+        } else {
+          console.log('Please enter the employee role ID!');
+          return false;
+        }
+      }
+    },
+    {
+      type: 'number',
+      name: 'employeeManager',
+      message: 'What is the manager ID for this employee (leave blank if no direct manager)?'
+    }
+  ])
+}
+
+const promptUser = async function () {
   return await inquirer.prompt([
     {
       type: 'list',
@@ -17,7 +166,7 @@ const promptUser = async function() {
       choices: ['View All Departments', 'View All Roles', 'View All Employees', 'Add Department', 'Add Role', 'Add Employee', 'Update an Employee Role', 'Exit']
     }
   ])
-    .then( async choiceCheck => {
+    .then(async choiceCheck => {
 
       const connection = await mysql.createConnection({
         host: 'localhost',
@@ -42,7 +191,7 @@ const promptUser = async function() {
 
         // Print Roles
         const [results] = await connection.execute(
-        `SELECT Title, Salary, Department_name AS 'Department Name' 
+          `SELECT Title, Salary, Department_name AS 'Department Name' 
         FROM Roles 
         INNER JOIN Departments ON Department_id=Departments.Id`);
         const table = cTable.getTable(results);
@@ -55,7 +204,7 @@ const promptUser = async function() {
 
         // Print Employees
         const [results] = await connection.execute(
-        `SELECT Employees.Id, 
+          `SELECT Employees.Id, 
                 Employees.First_name AS 'First Name', 
                 Employees.Last_name AS 'Last Name', 
                 Roles.Title, 
@@ -82,7 +231,7 @@ const promptUser = async function() {
             interns.push(new Intern(responses.internName, responses.internId, responses.internEmail, 'Intern', responses.internSchool));
             // Return to choice list
             promptUser();
-            
+
           });
       } else if (choiceCheck.choiceList === 'Add Role') {
 
