@@ -1,7 +1,7 @@
 const inquirer = require('inquirer');
 const cTable = require('console.table');
 const mysql = require('mysql2/promise');
-const { departmentPrompts, rolePrompts, employeePrompts } = require('./lib/inquierPrompts');
+const { departmentPrompts, rolePrompts, employeePrompts, updatePrompts } = require('./lib/inquierPrompts');
 
 /*db.connect(err => {
   if (err) throw err;
@@ -131,8 +131,8 @@ const promptUser = async function () {
           // add information to database
           .then(async responses => {
             const [results] = await connection.execute(
-              `INSERT INTO departments (Id, Department_name)
-              VALUES (${responses.departmentId}, '${responses.departmentName}');`);
+              `UPDATE employees SET role_ID = ${responses.roleId}
+              WHERE employees.id = ${responses.employeeId};`);
 
             console.log('Department entry succesful!');
             // Return to choice list
