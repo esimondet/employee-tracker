@@ -3,13 +3,7 @@ const cTable = require('console.table');
 const mysql = require('mysql2/promise');
 const { departmentPrompts, rolePrompts, employeePrompts, updatePrompts } = require('./lib/inquierPrompts');
 
-/*db.connect(err => {
-  if (err) throw err;
-  console.log('Database connected.');
-});*/
-
-
-
+//control tree
 const promptUser = async function () {
   return await inquirer.prompt([
     {
