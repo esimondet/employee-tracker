@@ -1,161 +1,14 @@
 const inquirer = require('inquirer');
 const cTable = require('console.table');
 const mysql = require('mysql2/promise');
+const { departmentPrompts, rolePrompts, employeePrompts } = require('./lib/inquierPrompts');
 
 /*db.connect(err => {
   if (err) throw err;
   console.log('Database connected.');
 });*/
 
-var departmentPrompts = function () {
-  return inquirer.prompt([
-    {
-      type: 'number',
-      name: 'departmentId',
-      message: 'What is the department ID?',
-      validate: inputField => {
-        if (inputField) {
-          return true;
-        } else {
-          console.log('Please enter the department ID!');
-          return false;
-        }
-      }
-    },
-    {
-      type: 'input',
-      name: 'departmentName',
-      message: 'What is the department name (limit 30 characters)?',
-      validate: inputField => {
-        if (inputField) {
-          return true;
-        } else {
-          console.log('Please enter the department name!');
-          return false;
-        }
-      }
-    }
-  ])
-}
 
-var rolePrompts = function () {
-  return inquirer.prompt([
-    {
-      type: 'number',
-      name: 'roleId',
-      message: 'What is the role ID?',
-      validate: inputField => {
-        if (inputField) {
-          return true;
-        } else {
-          console.log('Please enter the role ID!');
-          return false;
-        }
-      }
-    },
-    {
-      type: 'input',
-      name: 'roleTitle',
-      message: 'What is the role title (limit 30 characters)?',
-      validate: inputField => {
-        if (inputField) {
-          return true;
-        } else {
-          console.log('Please enter the role title!');
-          return false;
-        }
-      }
-    },
-    {
-      type: 'number',
-      name: 'roleSalary',
-      message: 'What is the role salary?',
-      validate: inputField => {
-        if (inputField) {
-          return true;
-        } else {
-          console.log('Please enter the role salary!');
-          return false;
-        }
-      }
-    },
-    {
-      type: 'number',
-      name: 'roleDepartment',
-      message: 'What department ID does the role belong to?',
-      validate: inputField => {
-        if (inputField) {
-          return true;
-        } else {
-          console.log('Please enter the role department ID!');
-          return false;
-        }
-      }
-    },
-  ])
-}
-
-var employeePrompts = function () {
-  return inquirer.prompt([
-    {
-      type: 'number',
-      name: 'employeeId',
-      message: 'What is the employee ID?',
-      validate: inputField => {
-        if (inputField) {
-          return true;
-        } else {
-          console.log('Please enter the employee ID!');
-          return false;
-        }
-      }
-    },
-    {
-      type: 'input',
-      name: 'firstName',
-      message: "What is the employee's first name (limit 30 characters)?",
-      validate: inputField => {
-        if (inputField) {
-          return true;
-        } else {
-          console.log("Please enter the employee's first name!");
-          return false;
-        }
-      }
-    },
-    {
-      type: 'input',
-      name: 'lastName',
-      message: "What is the employee's last name (limit 30 characters)?",
-      validate: inputField => {
-        if (inputField) {
-          return true;
-        } else {
-          console.log("Please enter the employee's last name!");
-          return false;
-        }
-      }
-    },
-    {
-      type: 'number',
-      name: 'employeeRole',
-      message: 'What role ID does the employee belong to?',
-      validate: inputField => {
-        if (inputField) {
-          return true;
-        } else {
-          console.log('Please enter the employee role ID!');
-          return false;
-        }
-      }
-    },
-    {
-      type: 'number',
-      name: 'employeeManager',
-      message: 'What is the manager ID for this employee (leave blank if no direct manager)?'
-    }
-  ])
-}
 
 const promptUser = async function () {
   return await inquirer.prompt([
@@ -227,20 +80,28 @@ const promptUser = async function () {
         return inquirer.prompt(departmentPrompts)
 
           // add information to database
-          .then(responses => {
-            interns.push(new Intern(responses.internName, responses.internId, responses.internEmail, 'Intern', responses.internSchool));
+          .then(async responses => {
+            const [results] = await connection.execute(
+              `INSERT INTO departments (Id, Department_name)
+              VALUES (${responses.departmentId}, '${responses.departmentName}');`);
+
+            console.log('Department entry succesful!');
             // Return to choice list
             promptUser();
-
           });
+
       } else if (choiceCheck.choiceList === 'Add Role') {
 
         // prompt user for role information
         return inquirer.prompt(rolePrompts)
 
           // add information to database
-          .then(responses => {
-            interns.push(new Intern(responses.internName, responses.internId, responses.internEmail, 'Intern', responses.internSchool));
+          .then(async responses => {
+            const [results] = await connection.execute(
+              `INSERT INTO roles (Id, Title, Salary, Department_id)
+              VALUES (${responses.roleId}, '${responses.roleTitle}', ${responses.roleSalary}, ${responses.roleDepartment});`);
+
+            console.log('Role entry succesful!');
             // Return to choice list
             promptUser();
           });
@@ -249,8 +110,17 @@ const promptUser = async function () {
         return inquirer.prompt(employeePrompts)
 
           // add information to database
-          .then(responses => {
-            interns.push(new Intern(responses.internName, responses.internId, responses.internEmail, 'Intern', responses.internSchool));
+          .then(async responses => {
+            let managerString = 'NULL';
+
+            if (responses.employeeManager != '') {
+              managerString = `CAST('${responses.employeeManager}' AS INT)`;
+            }
+            const [results] = await connection.execute(
+              `INSERT INTO Employees (Id, First_name, Last_name, Role_id, Manager_id)
+              VALUES (${responses.employeeId}, '${responses.firstName}', '${responses.lastName}', ${responses.employeeRole}, ${managerString});`);
+
+            console.log('Employee entry succesful!');
             // Return to choice list
             promptUser();
           });
@@ -259,8 +129,12 @@ const promptUser = async function () {
         return inquirer.prompt(updatePrompts)
 
           // add information to database
-          .then(responses => {
-            interns.push(new Intern(responses.internName, responses.internId, responses.internEmail, 'Intern', responses.internSchool));
+          .then(async responses => {
+            const [results] = await connection.execute(
+              `INSERT INTO departments (Id, Department_name)
+              VALUES (${responses.departmentId}, '${responses.departmentName}');`);
+
+            console.log('Department entry succesful!');
             // Return to choice list
             promptUser();
           });
